@@ -141,3 +141,42 @@ erase() -> [{Key1, Val1}, ...]
 %% Erases the value associated with Key. Returns the old value associated with Key or undefined if no such association exists.
 erase(Key) -> OldValue | undefined
 #+END_SRC
+
+* Supervisors
+
+** Linking
+
+A link is a relationship between two processes in which whenever either dies in an unexpected way the other one dies also.
+
+You can prevent a linked process from dying when the other dies unexpectedly by trapping exit signals (`process_flag(trap_exit, true)`)
+
+This will make the exit signlas received by the trapping process become messages instead (`{'EXIT', FromPid, Reason}`).
+
+** Supervision tree
+
+Erlang/OTP applications work by using a supervisor tree to supervise all the processes (well, the important ones) in case any one fails and restart it.
+
+Basically a root supervisor (process) which spawns either workers or supervisors processes, those supervisors processes can further spawn other workes or supervisors.
+
+This is done using the `supervisor behavior`, this behavior just needs one single callback `init/1` that returns `{ok, {{RestartStrategy, MaxRestart, MaxTime}, [ChildSpecs]}}.`.
+
+Let's explain those return values:
+- `RestartStrategy`: one_for_one, one_for_all, rest_for_one, simple_one_for_one
+- `MaxRestart` and MaxTime: if more than `MaxRestart` happen in `MaxTime` the supervisor gives up and kills itself.
+- ChildSpec:
+
+#+BEGIN_SRC erlang
+{ok, {{one_for_all, 5, 60},
+      [{fake_id,
+        {fake_mod, start_link, [SomeArg]},
+        permanent,
+        5000,
+        worker,
+        [fake_mod]},
+       {other_id,
+        {event_manager_mod, start_link, []},
+        transient,
+        infinity,
+        worker,
+        dynamic}]}}.
+#+END_SRC
