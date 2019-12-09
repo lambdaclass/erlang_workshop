@@ -1,3 +1,66 @@
+* Erlang basics
+
+** Data types
+
+- term: any data type
+- integer
+- float
+- atom: a literal, constant with a name (e.g: `foo`)
+- string
+- bit strings: `<<"foo bar">>`
+- pid
+- list
+- tuple
+- record
+- map
+
+** Pattern matching
+
+In Erlang you don't have the usual assignment operation for variables, instead you bound them using pattern matching.
+
+#+BEGIN_SRC erlang
+%% We pattern match right-hand term to left-hand pattern
+Variable = foo
+%% Varibale is bound to the value foo
+
+[FirstElement | _] = [1,2,3]
+%% FirstElement is bound to the value 1
+#+END_SRC
+
+** Functions
+A function declaration is conformed by one or more function clauses, this are made up by a head (signature) and its body.
+
+#+BEGIN_SRC erlang
+foo(Arg1, [] = ListArg) ->
+  magic;
+foo(Arg1, [ListArg1, | _] = ListArg) ->
+  magic2.
+#+END_SRC
+
+Also, function clauses can have a guard to validate that it is the correct match
+#+BEGIN_SRC erlang
+greater_thant_2(Num) when num > 2 ->
+  true;
+greater_thant_2(_) ->
+  false;
+#+END_SRC
+
+** Exercise 1
+
+Write a function to calculate the factorial of N
+
+Solution:
+#+BEGIN_SRC erlang
+factoria(1) ->
+  1;
+factorial(Num) ->
+  Num * factorial(Num - 1).
+#+END_SRC
+
+** Exercise 2
+
+[Erlings: Sum of Values](https://github.com/lambdaclass/erlings/tree/master/sequential/maps#sum-of-values)
+
 * Erlang Process
 
 ** Process creation
