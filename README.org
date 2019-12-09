@@ -1,0 +1,182 @@
+* Erlang basics
+
+** Data types
+
+- term: any data type
+- integer
+- float
+- atom: a literal, constant with a name (e.g: `foo`)
+- string
+- bit strings: `<<"foo bar">>`
+- pid
+- list
+- tuple
+- record
+- map
+
+** Pattern matching
+
+In Erlang you don't have the usual assignment operation for variables, instead you bound them using pattern matching.
+
+#+BEGIN_SRC erlang
+%% We pattern match right-hand term to left-hand pattern
+Variable = foo
+%% Varibale is bound to the value foo
+
+[FirstElement | _] = [1,2,3]
+%% FirstElement is bound to the value 1
+#+END_SRC
+
+** Functions
+A function declaration is conformed by one or more function clauses, this are made up by a head (signature) and its body.
+
+#+BEGIN_SRC erlang
+foo(Arg1, [] = ListArg) ->
+  magic;
+foo(Arg1, [ListArg1, | _] = ListArg) ->
+  magic2.
+#+END_SRC
+
+Also, function clauses can have a guard to validate that it is the correct match
+#+BEGIN_SRC erlang
+greater_thant_2(Num) when num > 2 ->
+  true;
+greater_thant_2(_) ->
+  false;
+#+END_SRC
+
+** Exercise 1
+
+Write a function to calculate the factorial of N
+
+Solution:
+#+BEGIN_SRC erlang
+factoria(1) ->
+  1;
+factorial(Num) ->
+  Num * factorial(Num - 1).
+#+END_SRC
+
+** Exercise 2
+
+[Erlings: Sum of Values](https://github.com/lambdaclass/erlings/tree/master/sequential/maps#sum-of-values)
+
+* Erlang Process
+
+** Process creation
+How to create (spawn) a process:
+
+#+BEGIN_SRC erlang
+spawn(Module, Fun, Args) -> pid()
+#+END_SRC
+
+`spawn` creates a new process and returns its PID. The new process will start executing in `Module:Fun(Arg0, ..., ArgN)`
+
+** Registering a process
+Instead of addressing a process by its PID we can register it with a name and refer to it using that. The name must be an atom and will be automatically unregistered when the process terminates.
+
+#+BEGIN_SRC erlang
+%% Associates name Name with process Pid
+register(Name, Pid) -> true
+
+%% Returns a list of names that have been registered
+registered()
+
+%% Returns the Pid registered under Name, or undefined if the name is not registered
+whereis(Name) -> Pid | undefined
+#+END_SRC
+
+** Sending and receiving messages
+Processes can communicate by sending messages between them. Each process has a mailbox (queue) from which it will look for new messages that match the receiving pattern or for timeout to happen.
+
+To send a message we use the send operator `!`:
+
+#+BEGIN_SRC erlang
+%% Send by PID
+Pid ! Msg.
+self() ! [blob].
+pid(0, 118, 0) ! bar.
+
+%% Send by registered name
+Name ! {Stuff1, Stuff2}.
+proc1 ! foo.
+#+END_SRC
+
+To receive a message (pop it from mailbox) we call `receive`, optionally we can also use  `after` for a timeout:
+
+#+BEGIN_SRC erlang
+receive
+  Pattern1 [when Guard1] ->
+    Body1;
+  .
+  .
+  .
+  PatternN [when GuardN] ->
+    BodyN
+after
+  60000 ->
+    BodyAfter
+end
+#+END_SRC
+
+** Process dictionary
+Each process has its own dictionary, which you can access using the following BIFs:
+
+#+BEGIN_SRC erlang
+%% Returns the entire process dictionary.
+get() -> [{Key1, Val1}, ...]
+
+%% Returns the item associated with Key or `undefined`
+get(Key) -> Item | undefined
+
+%% Returns a list of all keys whose associated value is Value.
+get_keys(Value) -> [...]
+
+%% Associate Value with Key. Returns the old value associated with Key or `undefined` if no such association exists.
+put(Key, Value) -> OldValue | undefined
+
+%% Erases the entire process dictionary. Returns the entire process dictionary before it was erased.
+erase() -> [{Key1, Val1}, ...]
+
+%% Erases the value associated with Key. Returns the old value associated with Key or undefined if no such association exists.
+erase(Key) -> OldValue | undefined
+#+END_SRC
+
+* Supervisors
+
+** Linking
+
+A link is a relationship between two processes in which whenever either dies in an unexpected way the other one dies also.
+
+You can prevent a linked process from dying when the other dies unexpectedly by trapping exit signals (`process_flag(trap_exit, true)`)
+
+This will make the exit signlas received by the trapping process become messages instead (`{'EXIT', FromPid, Reason}`).
+
+** Supervision tree
+
+Erlang/OTP applications work by using a supervisor tree to supervise all the processes (well, the important ones) in case any one fails and restart it.
+
+Basically a root supervisor (process) which spawns either workers or supervisors processes, those supervisors processes can further spawn other workes or supervisors.
+
+This is done using the `supervisor behavior`, this behavior just needs one single callback `init/1` that returns `{ok, {{RestartStrategy, MaxRestart, MaxTime}, [ChildSpecs]}}.`.
+
+Let's explain those return values:
+- `RestartStrategy`: one_for_one, one_for_all, rest_for_one, simple_one_for_one
+- `MaxRestart` and MaxTime: if more than `MaxRestart` happen in `MaxTime` the supervisor gives up and kills itself.
+- ChildSpec:
+
+#+BEGIN_SRC erlang
+{ok, {{one_for_all, 5, 60},
+      [{fake_id,
+        {fake_mod, start_link, [SomeArg]},
+        permanent,
+        5000,
+        worker,
+        [fake_mod]},
+       {other_id,
+        {event_manager_mod, start_link, []},
+        transient,
+        infinity,
+        worker,
+        dynamic}]}}.
+#+END_SRC
