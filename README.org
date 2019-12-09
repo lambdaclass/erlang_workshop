@@ -1,18 +1,18 @@
-# Erlang Process
+* Erlang Process
 
-## Process creation
+** Process creation
 How to create (spawn) a process:
 
-```erlang
+#+BEGIN_SRC erlang
 spawn(Module, Fun, Args) -> pid()
-```
+#+END_SRC
 
 `spawn` creates a new process and returns its PID. The new process will start executing in `Module:Fun(Arg0, ..., ArgN)`
 
-## Registering a process
+** Registering a process
 Instead of addressing a process by its PID we can register it with a name and refer to it using that. The name must be an atom and will be automatically unregistered when the process terminates.
 
-```erlang
+#+BEGIN_SRC erlang
 %% Associates name Name with process Pid
 register(Name, Pid) -> true
 
@@ -21,14 +21,14 @@ registered()
 
 %% Returns the Pid registered under Name, or undefined if the name is not registered
 whereis(Name) -> Pid | undefined
-```
+#+END_SRC
 
-## Sending and receiving messages
+** Sending and receiving messages
 Processes can communicate by sending messages between them. Each process has a mailbox (queue) from which it will look for new messages that match the receiving pattern or for timeout to happen.
 
 To send a message we use the send operator `!`:
 
-```erlang
+#+BEGIN_SRC erlang
 %% Send by PID
 Pid ! Msg.
 self() ! [blob].
@@ -37,11 +37,11 @@ pid(0, 118, 0) ! bar.
 %% Send by registered name
 Name ! {Stuff1, Stuff2}.
 proc1 ! foo.
-```
+#+END_SRC
 
 To receive a message (pop it from mailbox) we call `receive`, optionally we can also use  `after` for a timeout:
 
-```erlang
+#+BEGIN_SRC erlang
 receive
   Pattern1 [when Guard1] ->
     Body1;
@@ -54,12 +54,12 @@ after
   60000 ->
     BodyAfter
 end
-```
+#+END_SRC
 
-## Process dictionary
+** Process dictionary
 Each process has its own dictionary, which you can access using the following BIFs:
 
-```erlang
+#+BEGIN_SRC erlang
 %% Returns the entire process dictionary.
 get() -> [{Key1, Val1}, ...]
 
@@ -77,4 +77,4 @@ erase() -> [{Key1, Val1}, ...]
 
 %% Erases the value associated with Key. Returns the old value associated with Key or undefined if no such association exists.
 erase(Key) -> OldValue | undefined
-```
+#+END_SRC
