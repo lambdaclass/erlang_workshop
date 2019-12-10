@@ -322,3 +322,65 @@ redbug done, timeout - 3
 15:17:49 <{erlang,apply,2}> <<< timeout
 redbug done, timeout - 2
 #+END_SRC
+
+* Project: Shortly
+
+** Getting started with cowboy
+
+Small, fast, modular HTTP server.
+
+Let's implement a server with two endpoints:
+
+- `/home`: returns the message "Hello World!"
+- `/other/:word`: returns `:word`
+
+First create the project using `rebar3 new app hello`, add cowboy (`{cowboy, "2.7.0"}`) as a dependency, and include it in your application.
+
+Next we create the routes and initialize cowboy in our app:
+
+#+BEGIN_SRC erlang
+Dispatch = cowboy_router:compile([{'_', [{"/home", home_handler, []},
+                                         {"/other/:word", other_handler, []}]}]),
+{ok, _} = cowboy:start_clear(http, [{port, 8080}], #{env => #{dispatch => Dispatch}}),
+#+END_SRC
+
+Then we just need to create each of the module handlers we specified and the needed callbacks.
+
+For the most simple handlers (the ones we want) we just need to implement the `init/2` callback.
+
+#+BEGIN_SRC erlang
+-module(home_handler).
+-export([init/2]).
+
+init(Req0, State) ->
+  Req = cowboy_req:reply(200,
+                         #{<<"content-type">> => <<"text/plain">>},
+                         <<"Hello World!">>,
+                         Req0),
+  {ok, Req, State}.
+#+END_SRC
+
+#+BEGIN_SRC erlang
+-module(other_handler).
+-export([init/2]).
+
+init(Req0, State) ->
+  Word = cowboy_req:binding(word, Req0),
+  Req = cowboy_req:reply(200,
+                         #{<<"content-type">> => <<"text/plain">>},
+                         Word,
+                         Req0),
+  {ok, Req, State}.
+#+END_SRC
+
+** Exercise: Shortly
+
+Based on [Erlings: Shortly](https://github.com/lambdaclass/erlings/tree/master/libraries/shortly)
+
+Create an `OTP` application using `rebar3` and [cowboy](https://github.com/ninenines/cowboy) that is capable of receiving long links and returning shorts ones:
+
+- Receive a `HTTP POST` at `http://localhost:8080/<LONG_URL>` returning a shortened link.
+- Receive a `HTTP GET` at `http://localhost:8080/<SHORT_URL>` returning the original long link.
+- Accept websocket connections at `http://localhost:8080/news` and notify every time a new link is shortened.
+
+BONUS: Create similar endpoints (`GET` and `POST`), but using `cowboy_rest` handler.
