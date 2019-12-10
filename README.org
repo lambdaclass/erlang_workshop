@@ -146,6 +146,21 @@ erase(Key) -> OldValue | undefined
 
 [Erlings: Calculator](https://github.com/lambdaclass/erlings/blob/master/concurrent/calculator)
 
+* OTP
+
+Erlang comes with OTP (Open Telecom Platform), this is a framework that groups repeating and essentials tasks into librarires.
+
+This libraries work by using an abstraction presented by Erlang/OTP called `behaviors`, this allow you to have generic code and then specify needed callbacks for the module that wants to implement the behavior.
+
+The main behaviors you will used are:
+
+- gen_*
+  - gen_server
+  - gen_event
+  - gen_statem
+- supervisor
+- application
+
 * Supervisors
 
 ** Linking
