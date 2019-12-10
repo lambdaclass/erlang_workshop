@@ -5,9 +5,9 @@
 - term: any data type
 - integer
 - float
-- atom: a literal, constant with a name (e.g: `foo`)
+- atom: a literal, constant with a name (e.g: ~foo~)
 - string
-- bit strings: `<<"foo bar">>`
+- bit strings: ~<<"foo bar">>~
 - pid
 - list
 - tuple
@@ -70,7 +70,7 @@ How to create (spawn) a process:
 spawn(Module, Fun, Args) -> pid()
 #+END_SRC
 
-`spawn` creates a new process and returns its PID. The new process will start executing in `Module:Fun(Arg0, ..., ArgN)`
+~spawn~ creates a new process and returns its PID. The new process will start executing in ~Module:Fun(Arg0, ..., ArgN)~
 
 ** Registering a process
 Instead of addressing a process by its PID we can register it with a name and refer to it using that. The name must be an atom and will be automatically unregistered when the process terminates.
@@ -89,7 +89,7 @@ whereis(Name) -> Pid | undefined
 ** Sending and receiving messages
 Processes can communicate by sending messages between them. Each process has a mailbox (queue) from which it will look for new messages that match the receiving pattern or for timeout to happen.
 
-To send a message we use the send operator `!`:
+To send a message we use the send operator ~!~:
 
 #+BEGIN_SRC erlang
 %% Send by PID
@@ -102,7 +102,7 @@ Name ! {Stuff1, Stuff2}.
 proc1 ! foo.
 #+END_SRC
 
-To receive a message (pop it from mailbox) we call `receive`, optionally we can also use  `after` for a timeout:
+To receive a message (pop it from mailbox) we call ~receive~, optionally we can also use  ~after~ for a timeout:
 
 #+BEGIN_SRC erlang
 receive
@@ -126,13 +126,13 @@ Each process has its own dictionary, which you can access using the following BI
 %% Returns the entire process dictionary.
 get() -> [{Key1, Val1}, ...]
 
-%% Returns the item associated with Key or `undefined`
+%% Returns the item associated with Key or ~undefined~
 get(Key) -> Item | undefined
 
 %% Returns a list of all keys whose associated value is Value.
 get_keys(Value) -> [...]
 
-%% Associate Value with Key. Returns the old value associated with Key or `undefined` if no such association exists.
+%% Associate Value with Key. Returns the old value associated with Key or ~undefined~ if no such association exists.
 put(Key, Value) -> OldValue | undefined
 
 %% Erases the entire process dictionary. Returns the entire process dictionary before it was erased.
@@ -150,7 +150,7 @@ erase(Key) -> OldValue | undefined
 
 Erlang comes with OTP (Open Telecom Platform), this is a framework that groups repeating and essentials tasks into librarires.
 
-This libraries work by using an abstraction presented by Erlang/OTP called `behaviors`, this allow you to have generic code and then specify needed callbacks for the module that wants to implement the behavior.
+This libraries work by using an abstraction presented by Erlang/OTP called ~behaviors~, this allow you to have generic code and then specify needed callbacks for the module that wants to implement the behavior.
 
 The main behaviors you will most likely used are:
 
@@ -167,31 +167,31 @@ The gen_server behavior provides what you need for a generic server in a process
 
 To implement it in your module you need the following callbacks:
 
-- `init/1`: It initializes the server process and returns one of the following:
-  - `{ok, State}`
-  - `{ok, State, Timeout}`
-  - `{ok, State, hibernate}`
-  - `{stop, Reason}`
-  - `ignore`
-- `handle_call/3`: Used to handle synchronous messages sent through the gen_server interface. Its 3 parameters are: `Request`, `From`, `State`.
-  - `{reply, Reply, NewState}`
-  - `{reply, Reply, NewState, Timeout}`
-  - `{reply, Reply, NewState, hibernate}`
-  - `{noreply, NewState}`
-  - `{noreply, NewState, Timeout}`
-  - `{noreply, NewState, hibernate}`
-  - `{stop, Reason, Reply, NewState}`
-  - `{stop, Reason, NewState}`
-- `handle_cast/2`: Used to handle asynchronous messages sent through the gen_server interface. Its 2 parameters are: `Message`, `State`.
-  - `{noreply, NewState}`
-  - `{noreply, NewState, Timeout}`
-  - `{noreply, NewState, hibernate}`
-  - `{stop, Reason, NewState}`
-- `handle_info/2`: Similar to `handle_cast/2`, but for messages sent without using gen_server's interface (`!`, exit signals, etc).
-  - `{noreply, NewState}`
-  - `{noreply, NewState, Timeout}`
-  - `{noreply, NewState, hibernate}`
-  - `{stop, Reason, NewState}`
+- ~init/1~: It initializes the server process and returns one of the following:
+  - ~{ok, State}~
+  - ~{ok, State, Timeout}~
+  - ~{ok, State, hibernate}~
+  - ~{stop, Reason}~
+  - ~ignore~
+- ~handle_call/3~: Used to handle synchronous messages sent through the gen_server interface. Its 3 parameters are: ~Request~, ~From~, ~State~.
+  - ~{reply, Reply, NewState}~
+  - ~{reply, Reply, NewState, Timeout}~
+  - ~{reply, Reply, NewState, hibernate}~
+  - ~{noreply, NewState}~
+  - ~{noreply, NewState, Timeout}~
+  - ~{noreply, NewState, hibernate}~
+  - ~{stop, Reason, Reply, NewState}~
+  - ~{stop, Reason, NewState}~
+- ~handle_cast/2~: Used to handle asynchronous messages sent through the gen_server interface. Its 2 parameters are: ~Message~, ~State~.
+  - ~{noreply, NewState}~
+  - ~{noreply, NewState, Timeout}~
+  - ~{noreply, NewState, hibernate}~
+  - ~{stop, Reason, NewState}~
+- ~handle_info/2~: Similar to ~handle_cast/2~, but for messages sent without using gen_server's interface (~!~, exit signals, etc).
+  - ~{noreply, NewState}~
+  - ~{noreply, NewState, Timeout}~
+  - ~{noreply, NewState, hibernate}~
+  - ~{stop, Reason, NewState}~
 
 ** Exercise
 
@@ -201,11 +201,11 @@ To implement it in your module you need the following callbacks:
 
 Any OTP application will have the following directories:
 
-- `src`: Erlang source files for your application
-- `include`: Erlang header files
-- `priv`: Miscellaneous files needed by your application
-- `ebin`: Compiled files
-- `test`: Test files
+- ~src~: Erlang source files for your application
+- ~include~: Erlang header files
+- ~priv~: Miscellaneous files needed by your application
+- ~ebin~: Compiled files
+- ~test~: Test files
 
 The next thing would be to setup the application resource file, this tells the Erlang VM all the information it needs to run our application.
 
@@ -235,8 +235,8 @@ The structure of the file is as follows
 
 The final thing you'll need is to define a module that implements the application behavior, which needs two callbacks:
 
-- `start/2`: The function initialises everything for your app and only needs to return the PID of the application's top-level supervisor in one of the two following forms: `{ok, Pid}` or `{ok, Pid, SomeState}`.
-- `stop/1`: function takes the state returned by `start/2` as an argument. It runs after the application is done running and only does the necessary cleanup.
+- ~start/2~: The function initialises everything for your app and only needs to return the PID of the application's top-level supervisor in one of the two following forms: ~{ok, Pid}~ or ~{ok, Pid, SomeState}~.
+- ~stop/1~: function takes the state returned by ~start/2~ as an argument. It runs after the application is done running and only does the necessary cleanup.
 
 
 #+BEGIN_SRC erlang
@@ -259,9 +259,9 @@ stop(_State) ->
 
 A link is a relationship between two processes in which whenever either dies in an unexpected way the other one dies also.
 
-You can prevent a linked process from dying when the other dies unexpectedly by trapping exit signals (`process_flag(trap_exit, true)`)
+You can prevent a linked process from dying when the other dies unexpectedly by trapping exit signals (~process_flag(trap_exit, true)~)
 
-This will make the exit signlas received by the trapping process become messages instead (`{'EXIT', FromPid, Reason}`).
+This will make the exit signlas received by the trapping process become messages instead (~{'EXIT', FromPid, Reason}~).
 
 ** Supervision tree
 
@@ -269,18 +269,18 @@ Erlang/OTP applications work by using a supervisor tree to supervise all the pro
 
 Basically a root supervisor (process) which spawns either workers or supervisors processes, those supervisors processes can further spawn other workes or supervisors.
 
-This is done using the `supervisor behavior`, this behavior just needs one single callback `init/1` that returns `{ok, {{RestartStrategy, MaxRestart, MaxTime}, [ChildSpecs]}}.`.
+This is done using the ~supervisor behavior~, this behavior just needs one single callback ~init/1~ that returns ~{ok, {{RestartStrategy, MaxRestart, MaxTime}, [ChildSpecs]}}.~.
 
 Let's explain those return values:
-- `RestartStrategy`: one_for_one, one_for_all, rest_for_one, simple_one_for_one
-- `MaxRestart` and MaxTime: if more than `MaxRestart` happen in `MaxTime` the supervisor gives up and kills itself.
-- ChildSpec: `{ChildId, StartFunc, Restart, Shutdown, Type, Modules}`
+- ~RestartStrategy~: one_for_one, one_for_all, rest_for_one, simple_one_for_one
+- ~MaxRestart~ and MaxTime: if more than ~MaxRestart~ happen in ~MaxTime~ the supervisor gives up and kills itself.
+- ChildSpec: ~{ChildId, StartFunc, Restart, Shutdown, Type, Modules}~
   - ChildId: Internal name used by the supervisor
-  - StartFunc: `{M, F, A}` to start the child with
-  - Restart: How to react when the child dies: `permanent`, `temporary`, or `transient`
+  - StartFunc: ~{M, F, A}~ to start the child with
+  - Restart: How to react when the child dies: ~permanent~, ~temporary~, or ~transient~
   - Shutdown: Timeout for child shutdown
-  - Type: `worker` or `supervisor`
-  - Modules: is a list of one element, the name of the callback module used by the child behavior, or `dynamic` if not known.
+  - Type: ~worker~ or ~supervisor~
+  - Modules: is a list of one element, the name of the callback module used by the child behavior, or ~dynamic~ if not known.
 
 #+BEGIN_SRC erlang
 init(_) ->
@@ -305,12 +305,12 @@ init(_) ->
 
 The go to build tool for erlang projects right now is [rebar3](http://www.rebar3.org/)
 
-- `rebar3 new <template> <project-name>`
-- `rebar3 compile`
-- `rebar3 shell`
-- `rebar as <profile> tar`
-- `rebar3 eunit`
-- `rebar3 ct`
+- ~rebar3 new <template> <project-name>~
+- ~rebar3 compile~
+- ~rebar3 shell~
+- ~rebar as <profile> tar~
+- ~rebar3 eunit~
+- ~rebar3 ct~
 
 ** rebar.config
 
@@ -365,7 +365,7 @@ Erlang is designed with distribution in mind. A distributed Erlang system consis
 
 All features learned for local system using a PID work on a distributed system, except for registering a name for a PID, that's local for each node.
 
-A node is started by giving the Erlang runtime a name, either a short name (`-sname) or a long name (`-name`). Keep in mind a short named node can connect to a long named one and vice versa.
+A node is started by giving the Erlang runtime a name, either a short name (~-sname) or a long name (~-name~). Keep in mind a short named node can connect to a long named one and vice versa.
 
 #+BEGIN_SRC erlang
 %% erl -name dilbert
@@ -379,7 +379,7 @@ dilbert@domain
 
 ** Connecting nodes
 
-Nodes in a cluster are loosely connected. The first time an interaction with another node is invoked (e.g. `spawn(Node,M,F,A)`) the connection attempt is done.
+Nodes in a cluster are loosely connected. The first time an interaction with another node is invoked (e.g. ~spawn(Node,M,F,A)~) the connection attempt is done.
 
 Connections are by default transitive. If node A connects to node B and then node B connects to node C, a connection between node A and C is established.
 
@@ -395,7 +395,7 @@ If a node goes down all connections to that node are removed.
 
 Erlang offers a powerfull way of debugging called tracing.
 
-The Erlang module `dbg` offers the functions needed to trace anything, but it's a bit overcomplicated to use.
+The Erlang module ~dbg~ offers the functions needed to trace anything, but it's a bit overcomplicated to use.
 
 In general you'll want to use the library [Redbug](https://github.com/massemanet/redbug), it's really easy to use and very powerfull.
 
@@ -522,8 +522,8 @@ Profiling is essentially done in 3 steps:
 
 Profiling can be done in 3 ways:
 
-- From source code by adding `fprof:trace(start)` and `fprof:trace(stop)` before and after the code to profile
-- From a function by using `fprof:apply(Module, Function, Args)` or `fprof:apply(Module, Function, Args, [continue | OtherOpts])` if tracing should continue after function returns
+- From source code by adding ~fprof:trace(start)~ and ~fprof:trace(stop)~ before and after the code to profile
+- From a function by using ~fprof:apply(Module, Function, Args)~ or ~fprof:apply(Module, Function, Args, [continue | OtherOpts])~ if tracing should continue after function returns
 - Immediately doing:
 
 #+BEGIN_SRC erlang
@@ -578,11 +578,11 @@ Because it uses Ranch for managing connections, Cowboy can easily be embedded in
 
 Let's use Cowboy to implement an echo server with the following endpoints
 
-- `/echo/:word`: returns `:word`, will use basic Cowboy handler
-- `/echo_rest/:word`: returns `:word`, will use Cowboy's REST handler
-- `/echo_ws/:word`: returns `:word`, will use Cowboy's websocket handler
+- ~/echo/:word~: returns ~:word~, will use basic Cowboy handler
+- ~/echo_rest/:word~: returns ~:word~, will use Cowboy's REST handler
+- ~/echo_ws/:word~: returns ~:word~, will use Cowboy's websocket handler
 
-First create the project using `rebar3 new app hello`, add cowboy (`{cowboy, "2.7.0"}`) as a dependency, and include it in your application.
+First create the project using ~rebar3 new app hello~, add cowboy (~{cowboy, "2.7.0"}~) as a dependency, and include it in your application.
 
 Next we create the routes and initialize cowboy in our app:
 
@@ -595,7 +595,7 @@ Dispatch = cowboy_router:compile([{'_', [{"/echo/:word", echo_handler, []},
 
 Then we just need to create each of the module handlers we specified and the needed callbacks.
 
-For the simple handler we just need to implement the `init/2` callback.
+For the simple handler we just need to implement the ~init/2~ callback.
 
 #+BEGIN_SRC erlang
 -module(echo_handler).
@@ -658,13 +658,13 @@ websocket_handle(_Frame, State) ->
 
 Based on [Erlings: Shortly](https://github.com/lambdaclass/erlings/tree/master/libraries/shortly)
 
-Create an `OTP` application using `rebar3` and [cowboy](https://github.com/ninenines/cowboy) that is capable of receiving long links and returning shorts ones:
+Create an ~OTP~ application using ~rebar3~ and [cowboy](https://github.com/ninenines/cowboy) that is capable of receiving long links and returning shorts ones:
 
-- Receive a `HTTP POST` at `http://localhost:8080/<LONG_URL>` returning a shortened link.
-- Receive a `HTTP GET` at `http://localhost:8080/<SHORT_URL>` returning the original long link.
-- Accept websocket connections at `http://localhost:8080/news` and notify every time a new link is shortened.
+- Receive a ~HTTP POST~ at ~http://localhost:8080/<LONG_URL>~ returning a shortened link.
+- Receive a ~HTTP GET~ at ~http://localhost:8080/<SHORT_URL>~ returning the original long link.
+- Accept websocket connections at ~http://localhost:8080/news~ and notify every time a new link is shortened.
 
-BONUS: Create similar endpoints (`GET` and `POST`), but using `cowboy_rest` handler.
+BONUS: Create similar endpoints (~GET~ and ~POST~), but using ~cowboy_rest~ handler.
 
 * Testing
 
@@ -672,13 +672,13 @@ BONUS: Create similar endpoints (`GET` and `POST`), but using `cowboy_rest` hand
 
 EUnit is a unit testing framework for Erlang. It relies on many preprocessor macros that have been designed to be as nonintrusive as possible (avoid collisions with your code) and make testing easier.
 
-To write tests first create a module in the `test` folder that includes Eunit's header `-include_lib("eunit/include/eunit.hrl").`
+To write tests first create a module in the ~test~ folder that includes Eunit's header ~-include_lib("eunit/include/eunit.hrl").~
 
-Then we can write test by making functions that end with `_test`. This will be recognized by Eunit and automatically called without params.
+Then we can write test by making functions that end with ~_test~. This will be recognized by Eunit and automatically called without params.
 
 A test is marked as failed if it throws an exception, anything else is a success.
 
-Finally we can run them by doing `rebar3 eunit`.
+Finally we can run them by doing ~rebar3 eunit~.
 
 #+BEGIN_SRC erlang
 -module(hello_test).
@@ -695,19 +695,19 @@ Common Test (CT) is a more robust testing framework in Erlang/OTP that allows mo
 
 In CT you have test suites (modules) that define test cases (functions) to be executed.
 
-As in Eunit a failed test is caused by a runtime error, usually in the way of a `badmatch` in a pattern match.
+As in Eunit a failed test is caused by a runtime error, usually in the way of a ~badmatch~ in a pattern match.
 
 Anything else is a success. However, a few return values have special meaning:
 
-- `{skip,Reason}`: indicates that the test case is skipped.
-- `{comment,Comment}`: prints a comment in the log for the test case.
-- `{save_config,Config}`: makes the Common Test test server pass Config to the next test case.
+- ~{skip,Reason}~: indicates that the test case is skipped.
+- ~{comment,Comment}~: prints a comment in the log for the test case.
+- ~{save_config,Config}~: makes the Common Test test server pass Config to the next test case.
 
 Also CT provides the following optional callbacks for setup/teardown:
 
-- `init_per_suite(Config)` and `end_per_suite(Config)`
-- `init_per_group(GroupName, Config)` and `end_per_group(GroupName, Config)`
-- `init_per_testcase(TestCase, Config)` and `end_per_testcase(TestCase, Config)`
+- ~init_per_suite(Config)~ and ~end_per_suite(Config)~
+- ~init_per_group(GroupName, Config)~ and ~end_per_group(GroupName, Config)~
+- ~init_per_testcase(TestCase, Config)~ and ~end_per_testcase(TestCase, Config)~
 
 #+BEGIN_SRC erlang
 -module(hello_SUITE).
