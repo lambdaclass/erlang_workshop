@@ -384,3 +384,64 @@ Create an `OTP` application using `rebar3` and [cowboy](https://github.com/ninen
 - Accept websocket connections at `http://localhost:8080/news` and notify every time a new link is shortened.
 
 BONUS: Create similar endpoints (`GET` and `POST`), but using `cowboy_rest` handler.
+
+* Testing
+
+** Eunit
+
+EUnit is a unit testing framework for Erlang. It relies on many preprocessor macros that have been designed to be as nonintrusive as possible (avoid collisions with your code) and make testing easier.
+
+To write tests first create a module in the `test` folder that includes Eunit's header `-include_lib("eunit/include/eunit.hrl").`
+
+Then we can write test by making functions that end with `_test`. This will be recognized by Eunit and automatically called without params.
+
+A test is marked as failed if it throws an exception, anything else is a success.
+
+Finally we can run them by doing `rebar3 eunit`.
+
+#+BEGIN_SRC erlang
+-module(hello_test).
+
+-include_lib("eunit/include/eunit.hrl").
+
+hello_world_test() ->
+  <<"hello world">> = hello:hello().
+#+END_SRC
+
+** Common Test
+
+Common Test (CT) is a more robust testing framework in Erlang/OTP that allows more complex test cases than Eunit.
+
+In CT you have test suites (modules) that define test cases (functions) to be executed.
+
+As in Eunit a failed test is caused by a runtime error, usually in the way of a `badmatch` in a pattern match.
+
+Anything else is a success. However, a few return values have special meaning:
+
+- `{skip,Reason}`: indicates that the test case is skipped.
+- `{comment,Comment}`: prints a comment in the log for the test case.
+- `{save_config,Config}`: makes the Common Test test server pass Config to the next test case.
+
+Also CT provides the following optional callbacks for setup/teardown:
+
+- `init_per_suite(Config)` and `end_per_suite(Config)`
+- `init_per_group(GroupName, Config)` and `end_per_group(GroupName, Config)`
+- `init_per_testcase(TestCase, Config)` and `end_per_testcase(TestCase, Config)`
+
+#+BEGIN_SRC erlang
+-module(hello_SUITE).
+
+-include_lib("common_test/include/ct.hrl").
+
+-export([all/0]).
+-export([hello_world/1]).
+
+all() ->
+  [hello_world].
+
+hello_world(_Config) ->
+  <<"hello world">> = hello:hello().
+
+echo(_Config) ->
+  <<"hello world">> = hello:hello().
+#+END_SRC
