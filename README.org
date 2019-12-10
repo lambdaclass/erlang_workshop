@@ -90,7 +90,7 @@ factorial(Num) ->
 
 ** Exercise 2
 
-[Erlings: Sum of Values](https://github.com/lambdaclass/erlings/tree/master/sequential/maps#sum-of-values)
+[[https://github.com/lambdaclass/erlings/tree/master/sequential/maps#sum-of-values][Erlings: Sum of Values]]
 
 * Erlang Process
 
@@ -175,7 +175,7 @@ erase(Key) -> OldValue | undefined
 
 * Exercise 3
 
-[Erlings: Calculator](https://github.com/lambdaclass/erlings/blob/master/concurrent/calculator)
+[[https://github.com/lambdaclass/erlings/blob/master/concurrent/calculator][Erlings: Calculator]]
 
 * OTP
 
@@ -226,7 +226,7 @@ To implement it in your module you need the following callbacks:
 
 ** Exercise
 
-[Erlings: Shopping Cart](https://github.com/lambdaclass/erlings/tree/master/otp/shopping_cart)
+[[https://github.com/lambdaclass/erlings/tree/master/otp/shopping_cart][Erlings: Shopping Cart]]
 
 ** Behavior: application (making OTP application)
 
@@ -334,7 +334,7 @@ init(_) ->
 
 ** Rebar3
 
-The go to build tool for erlang projects right now is [rebar3](http://www.rebar3.org/)
+The go to build tool for erlang projects right now is [[http://www.rebar3.org/][rebar3]]
 
 - ~rebar3 new <template> <project-name>~
 - ~rebar3 compile~
@@ -418,7 +418,7 @@ If a node goes down all connections to that node are removed.
 
 * Exercise 4
 
-[Remote Function Server](https://github.com/lambdaclass/erlings/tree/master/distributed/remote_fun)
+[[https://github.com/lambdaclass/erlings/tree/master/distributed/remote_fun][Remote Function Server]]
 
 * Debugging
 
@@ -428,7 +428,7 @@ Erlang offers a powerfull way of debugging called tracing.
 
 The Erlang module ~dbg~ offers the functions needed to trace anything, but it's a bit overcomplicated to use.
 
-In general you'll want to use the library [Redbug](https://github.com/massemanet/redbug), it's really easy to use and very powerfull.
+In general you'll want to use the library [[https://github.com/massemanet/redbug][Redbug]], it's really easy to use and very powerfull.
 
 #+BEGIN_SRC erlang
 1> redbug:start("erlang:demonitor").
@@ -741,9 +741,9 @@ ok
 
 ** Exercise: Shortly
 
-Based on [Erlings: Shortly](https://github.com/lambdaclass/erlings/tree/master/libraries/shortly)
+Based on [[https://github.com/lambdaclass/erlings/tree/master/libraries/shortly][Erlings: Shortly]]
 
-Create an ~OTP~ application using ~rebar3~ and [cowboy](https://github.com/ninenines/cowboy) that is capable of receiving long links and returning shorts ones:
+Create an ~OTP~ application using ~rebar3~ and [[https://github.com/ninenines/cowboy][cowboy]] that is capable of receiving long links and returning shorts ones:
 
 - Receive a ~HTTP POST~ at ~http://localhost:8080/<LONG_URL>~ returning a shortened link.
 - Receive a ~HTTP GET~ at ~http://localhost:8080/<SHORT_URL>~ returning the original long link.
