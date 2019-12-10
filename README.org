@@ -152,7 +152,7 @@ Erlang comes with OTP (Open Telecom Platform), this is a framework that groups r
 
 This libraries work by using an abstraction presented by Erlang/OTP called `behaviors`, this allow you to have generic code and then specify needed callbacks for the module that wants to implement the behavior.
 
-The main behaviors you will used are:
+The main behaviors you will most likely used are:
 
 - gen_*
   - gen_server
@@ -192,6 +192,66 @@ To implement it in your module you need the following callbacks:
   - `{noreply, NewState, Timeout}`
   - `{noreply, NewState, hibernate}`
   - `{stop, Reason, NewState}`
+
+** Exercise
+
+[Erlings: Shopping Cart](https://github.com/lambdaclass/erlings/tree/master/otp/shopping_cart)
+
+** Behavior: application (making OTP application)
+
+Any OTP application will have the following directories:
+
+- `src`: Erlang source files for your application
+- `include`: Erlang header files
+- `priv`: Miscellaneous files needed by your application
+- `ebin`: Compiled files
+- `test`: Test files
+
+The next thing would be to setup the application resource file, this tells the Erlang VM all the information it needs to run our application.
+
+The structure of the file is as follows
+
+#+BEGIN_SRC erlang
+%% {application, ApplicationName, Properties}
+%% Properties is a list of {Key, Value} tuples used by OTP
+%%  to figure out your application
+{application, hello,
+ [{description, "An OTP application"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {mod, {hello_app, []}},
+  {applications,
+   [kernel,
+    stdlib,
+    cowboy
+   ]},
+  {env,[]},
+  {modules, []},
+
+  {licenses, ["Apache 2.0"]},
+  {links, []}
+ ]}.
+#+END_SRC
+
+The final thing you'll need is to define a module that implements the application behavior, which needs two callbacks:
+
+- `start/2`: The function initialises everything for your app and only needs to return the PID of the application's top-level supervisor in one of the two following forms: `{ok, Pid}` or `{ok, Pid, SomeState}`.
+- `stop/1`: function takes the state returned by `start/2` as an argument. It runs after the application is done running and only does the necessary cleanup.
+
+
+#+BEGIN_SRC erlang
+-module(hello_app).
+
+-behaviour(application).
+
+-export([start/2, stop/1]).
+
+start(_StartType, _StartArgs) ->
+  hello_sup:start_link().
+
+stop(_State) ->
+  ok.
+#+END_SRC
 
 * Supervisors
 
