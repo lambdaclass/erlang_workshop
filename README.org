@@ -142,6 +142,10 @@ erase() -> [{Key1, Val1}, ...]
 erase(Key) -> OldValue | undefined
 #+END_SRC
 
+* Exercise 3
+
+[Erlings: Calculator](https://github.com/lambdaclass/erlings/blob/master/concurrent/calculator)
+
 * Supervisors
 
 ** Linking
@@ -186,4 +190,44 @@ init(_) ->
           infinity,
           worker,
           dynamic}]}}.
+#+END_SRC
+
+* Build tools
+
+** Rebar3
+
+The go to build tool for erlang projects right now is [rebar3](http://www.rebar3.org/)
+
+- `rebar3 new <template> <project-name>`
+- `rebar3 compile`
+- `rebar3 shell`
+- `rebar as <profile> tar`
+- `rebar3 eunit`
+- `rebar3 ct`
+
+** rebar.config
+
+#+BEGIN_SRC erlang
+{deps, [
+        {cowboy, "2.1.0"},
+        {syn, "1.6.1"},
+        {redbug, {git, "https://github.com/massemanet/redbug.git", {tag, "1.2.1"}}},
+       ]}.
+
+{relx, [{release, {exampleapp, "1"}, [exampleapp]},
+         {dev_mode, true},
+         {include_erts, false},
+         {extended_start_script, true},
+         {overlay_vars, "conf/local_vars.config"},
+         {overlay, [{template, "conf/sys.config", "releases/{{default_release_version}}/sys.config"},
+                    {template, "conf/vm.args", "releases/{{default_release_version}}/vm.args"}]}
+         ]}.
+
+{profiles, [{test, [{erl_opts, [nowarn_export_all]},
+                    {relx, [{overlay_vars, "conf/test_vars.config"}]}]},
+            {prod, [{relx, [{dev_mode, false},
+                            {overlay_vars, "conf/prod_server_vars.config"},
+                            {include_src, false},
+                            {vm_args, "./conf/vm.args"},
+                            {extended_start_script, true}]}]}]}.
 #+END_SRC
