@@ -281,3 +281,29 @@ If a node goes down all connections to that node are removed.
 * Exercise 4
 
 [Remote Function Server](https://github.com/lambdaclass/erlings/tree/master/distributed/remote_fun)
+
+* Debugging
+
+** Tracing
+
+Erlang offers a powerfull way of debugging called tracing.
+
+The Erlang module `dbg` offers the functions needed to trace anything, but it's a bit overcomplicated to use.
+
+In general you'll want to use the library [Redbug](https://github.com/massemanet/redbug), it's really easy to use and very powerfull.
+
+#+BEGIN_SRC erlang
+1> redbug:start("erlang:demonitor").
+{30,2}
+15:39:00 <{erlang,apply,2}> {erlang,demonitor,[#Ref<0.0.0.21493>]}
+15:39:00 <{erlang,apply,2}> {erlang,demonitor,[#Ref<0.0.0.21499>]}
+15:39:00 <{erlang,apply,2}> {erlang,demonitor,[#Ref<0.0.0.21500>]}
+redbug done, timeout - 3
+
+%% Trace on messages that the shell process receives.
+2> redbug:start('receive',[{procs,[self()]}]).
+{1,0}
+15:15:47 <{erlang,apply,2}> <<< {running,1,0}
+15:17:49 <{erlang,apply,2}> <<< timeout
+redbug done, timeout - 2
+#+END_SRC
