@@ -1,3 +1,59 @@
+* Who, What, Why?
+
+- Who are you? What is your background?
+- What are you building?
+- Have you used erlang? When? For how much time? What did you build?
+- Do you know what raft, paxos, CAP theorem and CRDTs are?
+
+* Who am I?
+
+- Federico Carrone
+- LambdaClass: software company specialized in data science and distributed systems
+- BuzzConf, Zruput, Papers We Love Buenos Aires,
+- notamonadtutorial.com
+- I like: C, Erlang, Lisp, Rust, Julia
+- twitter: @unbalancedparen
+- github: unbalancedparentheses
+
+* Why Erlang?
+- History: build software without downtime
+- Practicality over theoretical elegance or coherence
+- Do one thing and only one thing well
+- Great for networking and servers
+- Soft real time systems: Througput-latency, expected value-standard deviation tradeoff
+- Redundancy is good, over optimization is bad, you need failover
+
+- The mess we are in: 2
+- Rocket science use controlled explosions as propulsion to send payload in orbit
+
+- Let it crash is all about fault tolerance. The idea is not to have uncontrolled failures everywhere, it's to instead transform failures, exceptions, and crashes into tools we can use
+
+- Building blocks: redundancy -> distribution -> networking -> concurrency -> isolation -> no shared mutable state -> message passing
+
+** Rapid prototyping
+- Binaries:  much easier it is to deal with binaries in erlang than in C
+- Socket handling, specially when things go wrong
+- Dialyzer: sweet practical spot
+
+- Isolation, automatic restart to a correct state and let it crash: writing code that only deals with the problem
+- Messaging:
+- Preemption
+
+- Inspection
+
+* Erlang semantics
+
+The unit is the process. Process are isolated, they can be running on different nodes. Process communicate using message passing. Message passing is asynchronous and the message is copied. Each process has its own mailbox where it receives messages
+
+Processes are isolated, but messaging between processes creates a
+
+Instead Erlang gives us two mechanisms to deal with this: monitors and links.
+
+Preemptive
+
+Erlang is not a language you'd use for life-critical systems — it only respects soft-real time constraints, not hard real time ones and it just wouldn't be a good idea to use it in these scenarios. But Erlang does provide you with preemptive scheduling, and with process priorities. This means that you do not have to care, as a developer or system designer, about making sure that absolutely everyone carefully counts all the CPU usage they're going to be doing across all their components (including libraries you use) to ensure they don't stall the system. They just won't have that capacity. And if you need some important task to always run when it must, you can also get that.
+
+
 * Erlang basics
 
 ** Data types
@@ -72,6 +128,20 @@ spawn(Module, Fun, Args) -> pid()
 
 `spawn` creates a new process and returns its PID. The new process will start executing in `Module:Fun(Arg0, ..., ArgN)`
 
+** Creating 100000 processes
+#+BEGIN_SRC erlang
+lists:map(fun(_)->
+            spawn(fun() ->
+              timer:sleep(10000)
+            end)
+          end, lists:seq(1, 100000)).
+#+END_SRC
+
+** Using the observer
+#+BEGIN_SRC erlang
+observer:start().
+#+END_SRC
+
 ** Registering a process
 Instead of addressing a process by its PID we can register it with a name and refer to it using that. The name must be an atom and will be automatically unregistered when the process terminates.
 
@@ -86,7 +156,7 @@ registered()
 whereis(Name) -> Pid | undefined
 #+END_SRC
 
-** Sending and receiving messages
+** Sending messages
 Processes can communicate by sending messages between them. Each process has a mailbox (queue) from which it will look for new messages that match the receiving pattern or for timeout to happen.
 
 To send a message we use the send operator `!`:
@@ -102,6 +172,7 @@ Name ! {Stuff1, Stuff2}.
 proc1 ! foo.
 #+END_SRC
 
+** Receiving messages
 To receive a message (pop it from mailbox) we call `receive`, optionally we can also use  `after` for a timeout:
 
 #+BEGIN_SRC erlang
@@ -117,6 +188,38 @@ after
   60000 ->
     BodyAfter
 end
+#+END_SRC
+
+** Connecting nodes and sending messages
+#+BEGIN_SRC erlang
+$ erl -sname a
+Erlang/OTP 22 [erts-10.5.2] [source] [64-bit] [smp:8:8] [ds:8:8:10] [async-threads:1] [hipe] [dtrace]
+
+Eshell V10.5.2  (abort with ^G)
+(a@maki)1> node().
+a@maki
+(a@maki)2> net_kernel:connect_node('b@maki').
+true
+(a@maki)3> nodes().
+[b@maki]
+(a@maki)4> register(shell_a, self()).
+true
+(a@maki)5> flush().
+Shell got hello_world
+ok
+#+END_SRC
+
+#+BEGIN_SRC erlang
+erl -sname b
+Erlang/OTP 22 [erts-10.5.2] [source] [64-bit] [smp:8:8] [ds:8:8:10] [async-threads:1] [hipe] [dtrace]
+
+Eshell V10.5.2  (abort with ^G)
+(b@maki)1> node().
+b@maki
+(b@maki)2> nodes().
+[a@maki]
+(b@maki)3> {shell_a, 'a@maki'} ! hello_world.
+hello_world
 #+END_SRC
 
 ** Process dictionary
@@ -368,9 +471,9 @@ All features learned for local system using a PID work on a distributed system, 
 A node is started by giving the Erlang runtime a name, either a short name (`-sname) or a long name (`-name`). Keep in mind a short named node can connect to a long named one and vice versa.
 
 #+BEGIN_SRC erlang
-%% erl -name dilbert
-(dilbert@domain.example.com)1> node().
-'dilbert@domain.example.com'
+%% erl -name dilbert@127.0.0.1
+(dilbert@127.0.0.1)1> node().
+'dilbert@127.0.0.1'
 
 %% erl -sname dilbert
 (dilbert@domain)1> node().
@@ -543,7 +646,6 @@ ok
 End of trace!
 ok
 #+END_SRC
-
 
 * Project: Shortly
 
