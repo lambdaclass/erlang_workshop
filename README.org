@@ -415,6 +415,136 @@ redbug done, timeout - 3
 redbug done, timeout - 2
 #+END_SRC
 
+** Profiling
+
+*** cprof
+
+A simple Call Count Profiling Tool using breakpoints for minimal runtime performance impact.
+
+The cprof module is used to profile a program to find out how many times different functions are called.
+
+Using it consist of:
+
+- cprof:start/0..3
+- Mod:fun(...)
+- cprof:pause/0..3
+- cprof:analyse/0..2
+- cprof:restart/0..3
+- cprof:stop/0..3
+
+#+BEGIN_SRC erlang
+1> cprof:start(), cprof:pause(). % Stop counters just after start
+3476
+2> cprof:analyse().
+{30,
+ [{erl_eval,11,
+            [{{erl_eval,expr,3},3},
+             {{erl_eval,'-merge_bindings/2-fun-0-',2},2},
+             {{erl_eval,expand_module_name,2},1},
+             {{erl_eval,merge_bindings,2},1},
+             {{erl_eval,binding,2},1},
+             {{erl_eval,expr_list,5},1},
+             {{erl_eval,expr_list,3},1},
+             {{erl_eval,exprs,4},1}]},
+  {orddict,8,
+           [{{orddict,find,2},6},
+            {{orddict,dict_to_list,1},1},
+            {{orddict,to_list,1},1}]},
+  {packages,7,[{{packages,is_segmented_1,1},6},
+               {{packages,is_segmented,1},1}]},
+  {lists,4,[{{lists,foldl,3},3},{{lists,reverse,1},1}]}]}
+3> cprof:analyse(cprof).
+{cprof,3,[{{cprof,tr,2},2},{{cprof,pause,0},1}]}
+4> cprof:stop().
+3476
+#+END_SRC
+
+*** eprof
+
+The module eprof provides a set of functions for time profiling of Erlang programs to find out how the execution time is used.
+
+#+BEGIN_SRC erlang
+1> eprof:start().
+{ok,<0.80.0>}
+
+2> eprof:start_profiling([self()]).
+profiling
+
+3> spawn(lists, reverse, [[1,2,3]]).
+<0.83.0>
+
+4> eprof:stop_profiling().
+profiling_stopped
+
+5> eprof:analyze(total).
+FUNCTION                                    CALLS        %  TIME  [uS / CALLS]
+--------                                    -----  -------  ----  [----------]
+lists:map/2                                     2     0.00     0  [      0.00]
+lists:rumergel/3                                2     0.00     0  [      0.00]
+io_lib_pretty:write_atom/2                      1     0.00     0  [      0.00]
+erl_lint:check_module_name/3                    1     0.00     0  [      0.00]
+gb_sets:is_member/2                             2     0.00     0  [      0.00]
+erlang:min/2                                    2     0.00     0  [      0.00]
+io:getopts/1                                    2     0.05     1  [      0.50]
+io:default_input/0                              2     0.05     1  [      0.50]
+io:io_requests/2                                2     0.05     1  [      0.50]
+erl_scan:reserved_word/1                        1     0.05     1  [      1.00]
+gen:do_for_proc/2                               1     0.05     1  [      1.00]
+...
+...
+lists:usort/1                                  12     1.63    35  [      2.92]
+dict:on_bucket/3                                2     1.72    37  [     18.50]
+erl_anno:anno_info/2                           17     1.72    37  [      2.18]
+lists:keyfind/3                                35     1.76    38  [      1.09]
+erl_lint:bool_option/4                         30     2.14    46  [      1.53]
+erlang:tuple_to_list/1                         34     2.32    50  [      1.47]
+erlang:monitor/2                                7     2.83    61  [      8.71]
+erl_parse:modify_anno1/3                       30     3.07    66  [      2.20]
+shell:used_records/4                          120     3.30    71  [      0.59]
+shell:used_records/1                          120     3.34    72  [      0.60]
+shell:prep_check/1                            141     3.76    81  [      0.57]
+lists:foldl/3                                 127     3.95    85  [      0.67]
+erl_anno:is_settable/2                         17     3.99    86  [      5.06]
+------------------------------------------  -----  -------  ----  [----------]
+Total:                                       1556  100.00%  2153  [      1.38]
+ok
+#+END_SRC
+
+*** fprof
+
+This module is used to profile a program to find out how the execution time is used. Trace to file is used to minimize runtime performance impact.
+
+Profiling is essentially done in 3 steps:
+
+1. Tracing; to file, as mentioned in the previous paragraph.
+2. Profiling; the trace file is read and raw profile data is collected into an internal RAM storage on the node. During this step the trace data may be dumped in text format to file or console.
+3. Analysing; the raw profile data is sorted and dumped in text format either to file or console.
+
+Profiling can be done in 3 ways:
+
+- From source code by adding `fprof:trace(start)` and `fprof:trace(stop)` before and after the code to profile
+- From a function by using `fprof:apply(Module, Function, Args)` or `fprof:apply(Module, Function, Args, [continue | OtherOpts])` if tracing should continue after function returns
+- Immediately doing:
+
+#+BEGIN_SRC erlang
+1> {ok, Tracer} = fprof:profile(start).
+{ok,<0.81.0>}
+
+2> fprof:trace([start, {tracer, Tracer}]).
+Reading trace data...
+ok
+
+%% Code to profile
+3> lists:reverse([1,2,3,4]).
+[4,3,2,1]
+
+4> fprof:trace(stop).
+.
+End of trace!
+ok
+#+END_SRC
+
+
 * Project: Shortly
 
 ** Getting started with cowboy
