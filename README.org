@@ -231,3 +231,53 @@ The go to build tool for erlang projects right now is [rebar3](http://www.rebar3
                             {vm_args, "./conf/vm.args"},
                             {extended_start_script, true}]}]}]}.
 #+END_SRC
+
+* Distributed Erlang
+
+** Fallacies of distributed computing
+
+- The network is reliable
+- There is no latency
+- Bandwidth is infinite
+- The network is secure
+- Topology doesn't change
+- There is only one administrator
+- Transport cost is zero
+- The network is homogeneous
+
+** CAP theorem
+
+Choose 2:
+
+- Consistency
+- Availability
+- Partition tolerance
+
+** Starting a node
+Erlang is designed with distribution in mind. A distributed Erlang system consist (cluster) on a number of Erlang runtime systems (nodes) communicating with each other.
+
+All features learned for local system using a PID work on a distributed system, except for registering a name for a PID, that's local for each node.
+
+A node is started by giving the Erlang runtime a name, either a short name (`-sname) or a long name (`-name`). Keep in mind a short named node can connect to a long named one and vice versa.
+
+#+BEGIN_SRC erlang
+%% erl -name dilbert
+(dilbert@domain.example.com)1> node().
+'dilbert@domain.example.com'
+
+%% erl -sname dilbert
+(dilbert@domain)1> node().
+dilbert@domain
+#+END_SRC
+
+** Connecting nodes
+
+Nodes in a cluster are loosely connected. The first time an interaction with another node is invoked (e.g. `spawn(Node,M,F,A)`) the connection attempt is done.
+
+Connections are by default transitive. If node A connects to node B and then node B connects to node C, a connection between node A and C is established.
+
+If a node goes down all connections to that node are removed.
+
+* Exercise 4
+
+[Remote Function Server](https://github.com/lambdaclass/erlings/tree/master/distributed/remote_fun)
