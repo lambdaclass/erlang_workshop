@@ -142,6 +142,117 @@ erase() -> [{Key1, Val1}, ...]
 erase(Key) -> OldValue | undefined
 #+END_SRC
 
+* Exercise 3
+
+[Erlings: Calculator](https://github.com/lambdaclass/erlings/blob/master/concurrent/calculator)
+
+* OTP
+
+Erlang comes with OTP (Open Telecom Platform), this is a framework that groups repeating and essentials tasks into librarires.
+
+This libraries work by using an abstraction presented by Erlang/OTP called `behaviors`, this allow you to have generic code and then specify needed callbacks for the module that wants to implement the behavior.
+
+The main behaviors you will most likely used are:
+
+- gen_*
+  - gen_server
+  - gen_event
+  - gen_statem
+- supervisor
+- application
+
+** Behavior: gen_server
+
+The gen_server behavior provides what you need for a generic server in a process.
+
+To implement it in your module you need the following callbacks:
+
+- `init/1`: It initializes the server process and returns one of the following:
+  - `{ok, State}`
+  - `{ok, State, Timeout}`
+  - `{ok, State, hibernate}`
+  - `{stop, Reason}`
+  - `ignore`
+- `handle_call/3`: Used to handle synchronous messages sent through the gen_server interface. Its 3 parameters are: `Request`, `From`, `State`.
+  - `{reply, Reply, NewState}`
+  - `{reply, Reply, NewState, Timeout}`
+  - `{reply, Reply, NewState, hibernate}`
+  - `{noreply, NewState}`
+  - `{noreply, NewState, Timeout}`
+  - `{noreply, NewState, hibernate}`
+  - `{stop, Reason, Reply, NewState}`
+  - `{stop, Reason, NewState}`
+- `handle_cast/2`: Used to handle asynchronous messages sent through the gen_server interface. Its 2 parameters are: `Message`, `State`.
+  - `{noreply, NewState}`
+  - `{noreply, NewState, Timeout}`
+  - `{noreply, NewState, hibernate}`
+  - `{stop, Reason, NewState}`
+- `handle_info/2`: Similar to `handle_cast/2`, but for messages sent without using gen_server's interface (`!`, exit signals, etc).
+  - `{noreply, NewState}`
+  - `{noreply, NewState, Timeout}`
+  - `{noreply, NewState, hibernate}`
+  - `{stop, Reason, NewState}`
+
+** Exercise
+
+[Erlings: Shopping Cart](https://github.com/lambdaclass/erlings/tree/master/otp/shopping_cart)
+
+** Behavior: application (making OTP application)
+
+Any OTP application will have the following directories:
+
+- `src`: Erlang source files for your application
+- `include`: Erlang header files
+- `priv`: Miscellaneous files needed by your application
+- `ebin`: Compiled files
+- `test`: Test files
+
+The next thing would be to setup the application resource file, this tells the Erlang VM all the information it needs to run our application.
+
+The structure of the file is as follows
+
+#+BEGIN_SRC erlang
+%% {application, ApplicationName, Properties}
+%% Properties is a list of {Key, Value} tuples used by OTP
+%%  to figure out your application
+{application, hello,
+ [{description, "An OTP application"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {mod, {hello_app, []}},
+  {applications,
+   [kernel,
+    stdlib,
+    cowboy
+   ]},
+  {env,[]},
+  {modules, []},
+
+  {licenses, ["Apache 2.0"]},
+  {links, []}
+ ]}.
+#+END_SRC
+
+The final thing you'll need is to define a module that implements the application behavior, which needs two callbacks:
+
+- `start/2`: The function initialises everything for your app and only needs to return the PID of the application's top-level supervisor in one of the two following forms: `{ok, Pid}` or `{ok, Pid, SomeState}`.
+- `stop/1`: function takes the state returned by `start/2` as an argument. It runs after the application is done running and only does the necessary cleanup.
+
+
+#+BEGIN_SRC erlang
+-module(hello_app).
+
+-behaviour(application).
+
+-export([start/2, stop/1]).
+
+start(_StartType, _StartArgs) ->
+  hello_sup:start_link().
+
+stop(_State) ->
+  ok.
+#+END_SRC
+
 * Supervisors
 
 ** Linking
@@ -163,20 +274,396 @@ This is done using the `supervisor behavior`, this behavior just needs one singl
 Let's explain those return values:
 - `RestartStrategy`: one_for_one, one_for_all, rest_for_one, simple_one_for_one
 - `MaxRestart` and MaxTime: if more than `MaxRestart` happen in `MaxTime` the supervisor gives up and kills itself.
-- ChildSpec:
+- ChildSpec: `{ChildId, StartFunc, Restart, Shutdown, Type, Modules}`
+  - ChildId: Internal name used by the supervisor
+  - StartFunc: `{M, F, A}` to start the child with
+  - Restart: How to react when the child dies: `permanent`, `temporary`, or `transient`
+  - Shutdown: Timeout for child shutdown
+  - Type: `worker` or `supervisor`
+  - Modules: is a list of one element, the name of the callback module used by the child behavior, or `dynamic` if not known.
 
 #+BEGIN_SRC erlang
-{ok, {{one_for_all, 5, 60},
-      [{fake_id,
-        {fake_mod, start_link, [SomeArg]},
-        permanent,
-        5000,
-        worker,
-        [fake_mod]},
-       {other_id,
-        {event_manager_mod, start_link, []},
-        transient,
-        infinity,
-        worker,
-        dynamic}]}}.
+init(_) ->
+  {ok, {{one_for_all, 5, 60},
+        [{fake_id,
+          {fake_mod, start_link, [SomeArg]},
+          permanent,
+          5000,
+          worker,
+          [fake_mod]},
+        {other_id,
+          {event_manager_mod, start_link, []},
+          transient,
+          infinity,
+          worker,
+          dynamic}]}}.
+#+END_SRC
+
+* Build tools
+
+** Rebar3
+
+The go to build tool for erlang projects right now is [rebar3](http://www.rebar3.org/)
+
+- `rebar3 new <template> <project-name>`
+- `rebar3 compile`
+- `rebar3 shell`
+- `rebar as <profile> tar`
+- `rebar3 eunit`
+- `rebar3 ct`
+
+** rebar.config
+
+#+BEGIN_SRC erlang
+{deps, [
+        {cowboy, "2.1.0"},
+        {syn, "1.6.1"},
+        {redbug, {git, "https://github.com/massemanet/redbug.git", {tag, "1.2.1"}}},
+       ]}.
+
+{relx, [{release, {exampleapp, "1"}, [exampleapp]},
+         {dev_mode, true},
+         {include_erts, false},
+         {extended_start_script, true},
+         {overlay_vars, "conf/local_vars.config"},
+         {overlay, [{template, "conf/sys.config", "releases/{{default_release_version}}/sys.config"},
+                    {template, "conf/vm.args", "releases/{{default_release_version}}/vm.args"}]}
+         ]}.
+
+{profiles, [{test, [{erl_opts, [nowarn_export_all]},
+                    {relx, [{overlay_vars, "conf/test_vars.config"}]}]},
+            {prod, [{relx, [{dev_mode, false},
+                            {overlay_vars, "conf/prod_server_vars.config"},
+                            {include_src, false},
+                            {vm_args, "./conf/vm.args"},
+                            {extended_start_script, true}]}]}]}.
+#+END_SRC
+
+* Distributed Erlang
+
+** Fallacies of distributed computing
+
+- The network is reliable
+- There is no latency
+- Bandwidth is infinite
+- The network is secure
+- Topology doesn't change
+- There is only one administrator
+- Transport cost is zero
+- The network is homogeneous
+
+** CAP theorem
+
+Choose 2:
+
+- Consistency
+- Availability
+- Partition tolerance
+
+** Starting a node
+Erlang is designed with distribution in mind. A distributed Erlang system consist (cluster) on a number of Erlang runtime systems (nodes) communicating with each other.
+
+All features learned for local system using a PID work on a distributed system, except for registering a name for a PID, that's local for each node.
+
+A node is started by giving the Erlang runtime a name, either a short name (`-sname) or a long name (`-name`). Keep in mind a short named node can connect to a long named one and vice versa.
+
+#+BEGIN_SRC erlang
+%% erl -name dilbert
+(dilbert@domain.example.com)1> node().
+'dilbert@domain.example.com'
+
+%% erl -sname dilbert
+(dilbert@domain)1> node().
+dilbert@domain
+#+END_SRC
+
+** Connecting nodes
+
+Nodes in a cluster are loosely connected. The first time an interaction with another node is invoked (e.g. `spawn(Node,M,F,A)`) the connection attempt is done.
+
+Connections are by default transitive. If node A connects to node B and then node B connects to node C, a connection between node A and C is established.
+
+If a node goes down all connections to that node are removed.
+
+* Exercise 4
+
+[Remote Function Server](https://github.com/lambdaclass/erlings/tree/master/distributed/remote_fun)
+
+* Debugging
+
+** Tracing
+
+Erlang offers a powerfull way of debugging called tracing.
+
+The Erlang module `dbg` offers the functions needed to trace anything, but it's a bit overcomplicated to use.
+
+In general you'll want to use the library [Redbug](https://github.com/massemanet/redbug), it's really easy to use and very powerfull.
+
+#+BEGIN_SRC erlang
+1> redbug:start("erlang:demonitor").
+{30,2}
+15:39:00 <{erlang,apply,2}> {erlang,demonitor,[#Ref<0.0.0.21493>]}
+15:39:00 <{erlang,apply,2}> {erlang,demonitor,[#Ref<0.0.0.21499>]}
+15:39:00 <{erlang,apply,2}> {erlang,demonitor,[#Ref<0.0.0.21500>]}
+redbug done, timeout - 3
+
+%% Trace on messages that the shell process receives.
+2> redbug:start('receive',[{procs,[self()]}]).
+{1,0}
+15:15:47 <{erlang,apply,2}> <<< {running,1,0}
+15:17:49 <{erlang,apply,2}> <<< timeout
+redbug done, timeout - 2
+#+END_SRC
+
+** Profiling
+
+*** cprof
+
+A simple Call Count Profiling Tool using breakpoints for minimal runtime performance impact.
+
+The cprof module is used to profile a program to find out how many times different functions are called.
+
+Using it consist of:
+
+- cprof:start/0..3
+- Mod:fun(...)
+- cprof:pause/0..3
+- cprof:analyse/0..2
+- cprof:restart/0..3
+- cprof:stop/0..3
+
+#+BEGIN_SRC erlang
+1> cprof:start(), cprof:pause(). % Stop counters just after start
+3476
+2> cprof:analyse().
+{30,
+ [{erl_eval,11,
+            [{{erl_eval,expr,3},3},
+             {{erl_eval,'-merge_bindings/2-fun-0-',2},2},
+             {{erl_eval,expand_module_name,2},1},
+             {{erl_eval,merge_bindings,2},1},
+             {{erl_eval,binding,2},1},
+             {{erl_eval,expr_list,5},1},
+             {{erl_eval,expr_list,3},1},
+             {{erl_eval,exprs,4},1}]},
+  {orddict,8,
+           [{{orddict,find,2},6},
+            {{orddict,dict_to_list,1},1},
+            {{orddict,to_list,1},1}]},
+  {packages,7,[{{packages,is_segmented_1,1},6},
+               {{packages,is_segmented,1},1}]},
+  {lists,4,[{{lists,foldl,3},3},{{lists,reverse,1},1}]}]}
+3> cprof:analyse(cprof).
+{cprof,3,[{{cprof,tr,2},2},{{cprof,pause,0},1}]}
+4> cprof:stop().
+3476
+#+END_SRC
+
+*** eprof
+
+The module eprof provides a set of functions for time profiling of Erlang programs to find out how the execution time is used.
+
+#+BEGIN_SRC erlang
+1> eprof:start().
+{ok,<0.80.0>}
+
+2> eprof:start_profiling([self()]).
+profiling
+
+3> spawn(lists, reverse, [[1,2,3]]).
+<0.83.0>
+
+4> eprof:stop_profiling().
+profiling_stopped
+
+5> eprof:analyze(total).
+FUNCTION                                    CALLS        %  TIME  [uS / CALLS]
+--------                                    -----  -------  ----  [----------]
+lists:map/2                                     2     0.00     0  [      0.00]
+lists:rumergel/3                                2     0.00     0  [      0.00]
+io_lib_pretty:write_atom/2                      1     0.00     0  [      0.00]
+erl_lint:check_module_name/3                    1     0.00     0  [      0.00]
+gb_sets:is_member/2                             2     0.00     0  [      0.00]
+erlang:min/2                                    2     0.00     0  [      0.00]
+io:getopts/1                                    2     0.05     1  [      0.50]
+io:default_input/0                              2     0.05     1  [      0.50]
+io:io_requests/2                                2     0.05     1  [      0.50]
+erl_scan:reserved_word/1                        1     0.05     1  [      1.00]
+gen:do_for_proc/2                               1     0.05     1  [      1.00]
+...
+...
+lists:usort/1                                  12     1.63    35  [      2.92]
+dict:on_bucket/3                                2     1.72    37  [     18.50]
+erl_anno:anno_info/2                           17     1.72    37  [      2.18]
+lists:keyfind/3                                35     1.76    38  [      1.09]
+erl_lint:bool_option/4                         30     2.14    46  [      1.53]
+erlang:tuple_to_list/1                         34     2.32    50  [      1.47]
+erlang:monitor/2                                7     2.83    61  [      8.71]
+erl_parse:modify_anno1/3                       30     3.07    66  [      2.20]
+shell:used_records/4                          120     3.30    71  [      0.59]
+shell:used_records/1                          120     3.34    72  [      0.60]
+shell:prep_check/1                            141     3.76    81  [      0.57]
+lists:foldl/3                                 127     3.95    85  [      0.67]
+erl_anno:is_settable/2                         17     3.99    86  [      5.06]
+------------------------------------------  -----  -------  ----  [----------]
+Total:                                       1556  100.00%  2153  [      1.38]
+ok
+#+END_SRC
+
+*** fprof
+
+This module is used to profile a program to find out how the execution time is used. Trace to file is used to minimize runtime performance impact.
+
+Profiling is essentially done in 3 steps:
+
+1. Tracing; to file, as mentioned in the previous paragraph.
+2. Profiling; the trace file is read and raw profile data is collected into an internal RAM storage on the node. During this step the trace data may be dumped in text format to file or console.
+3. Analysing; the raw profile data is sorted and dumped in text format either to file or console.
+
+Profiling can be done in 3 ways:
+
+- From source code by adding `fprof:trace(start)` and `fprof:trace(stop)` before and after the code to profile
+- From a function by using `fprof:apply(Module, Function, Args)` or `fprof:apply(Module, Function, Args, [continue | OtherOpts])` if tracing should continue after function returns
+- Immediately doing:
+
+#+BEGIN_SRC erlang
+1> {ok, Tracer} = fprof:profile(start).
+{ok,<0.81.0>}
+
+2> fprof:trace([start, {tracer, Tracer}]).
+Reading trace data...
+ok
+
+%% Code to profile
+3> lists:reverse([1,2,3,4]).
+[4,3,2,1]
+
+4> fprof:trace(stop).
+.
+End of trace!
+ok
+#+END_SRC
+
+
+* Project: Shortly
+
+** Getting started with cowboy
+
+Small, fast, modular HTTP server.
+
+Let's implement a server with two endpoints:
+
+- `/home`: returns the message "Hello World!"
+- `/other/:word`: returns `:word`
+
+First create the project using `rebar3 new app hello`, add cowboy (`{cowboy, "2.7.0"}`) as a dependency, and include it in your application.
+
+Next we create the routes and initialize cowboy in our app:
+
+#+BEGIN_SRC erlang
+Dispatch = cowboy_router:compile([{'_', [{"/home", home_handler, []},
+                                         {"/other/:word", other_handler, []}]}]),
+{ok, _} = cowboy:start_clear(http, [{port, 8080}], #{env => #{dispatch => Dispatch}}),
+#+END_SRC
+
+Then we just need to create each of the module handlers we specified and the needed callbacks.
+
+For the most simple handlers (the ones we want) we just need to implement the `init/2` callback.
+
+#+BEGIN_SRC erlang
+-module(home_handler).
+-export([init/2]).
+
+init(Req0, State) ->
+  Req = cowboy_req:reply(200,
+                         #{<<"content-type">> => <<"text/plain">>},
+                         <<"Hello World!">>,
+                         Req0),
+  {ok, Req, State}.
+#+END_SRC
+
+#+BEGIN_SRC erlang
+-module(other_handler).
+-export([init/2]).
+
+init(Req0, State) ->
+  Word = cowboy_req:binding(word, Req0),
+  Req = cowboy_req:reply(200,
+                         #{<<"content-type">> => <<"text/plain">>},
+                         Word,
+                         Req0),
+  {ok, Req, State}.
+#+END_SRC
+
+** Exercise: Shortly
+
+Based on [Erlings: Shortly](https://github.com/lambdaclass/erlings/tree/master/libraries/shortly)
+
+Create an `OTP` application using `rebar3` and [cowboy](https://github.com/ninenines/cowboy) that is capable of receiving long links and returning shorts ones:
+
+- Receive a `HTTP POST` at `http://localhost:8080/<LONG_URL>` returning a shortened link.
+- Receive a `HTTP GET` at `http://localhost:8080/<SHORT_URL>` returning the original long link.
+- Accept websocket connections at `http://localhost:8080/news` and notify every time a new link is shortened.
+
+BONUS: Create similar endpoints (`GET` and `POST`), but using `cowboy_rest` handler.
+
+* Testing
+
+** Eunit
+
+EUnit is a unit testing framework for Erlang. It relies on many preprocessor macros that have been designed to be as nonintrusive as possible (avoid collisions with your code) and make testing easier.
+
+To write tests first create a module in the `test` folder that includes Eunit's header `-include_lib("eunit/include/eunit.hrl").`
+
+Then we can write test by making functions that end with `_test`. This will be recognized by Eunit and automatically called without params.
+
+A test is marked as failed if it throws an exception, anything else is a success.
+
+Finally we can run them by doing `rebar3 eunit`.
+
+#+BEGIN_SRC erlang
+-module(hello_test).
+
+-include_lib("eunit/include/eunit.hrl").
+
+hello_world_test() ->
+  <<"hello world">> = hello:hello().
+#+END_SRC
+
+** Common Test
+
+Common Test (CT) is a more robust testing framework in Erlang/OTP that allows more complex test cases than Eunit.
+
+In CT you have test suites (modules) that define test cases (functions) to be executed.
+
+As in Eunit a failed test is caused by a runtime error, usually in the way of a `badmatch` in a pattern match.
+
+Anything else is a success. However, a few return values have special meaning:
+
+- `{skip,Reason}`: indicates that the test case is skipped.
+- `{comment,Comment}`: prints a comment in the log for the test case.
+- `{save_config,Config}`: makes the Common Test test server pass Config to the next test case.
+
+Also CT provides the following optional callbacks for setup/teardown:
+
+- `init_per_suite(Config)` and `end_per_suite(Config)`
+- `init_per_group(GroupName, Config)` and `end_per_group(GroupName, Config)`
+- `init_per_testcase(TestCase, Config)` and `end_per_testcase(TestCase, Config)`
+
+#+BEGIN_SRC erlang
+-module(hello_SUITE).
+
+-include_lib("common_test/include/ct.hrl").
+
+-export([all/0]).
+-export([hello_world/1]).
+
+all() ->
+  [hello_world].
+
+hello_world(_Config) ->
+  <<"hello world">> = hello:hello().
+
+echo(_Config) ->
+  <<"hello world">> = hello:hello().
 #+END_SRC
