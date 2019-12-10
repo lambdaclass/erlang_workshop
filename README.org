@@ -549,41 +549,56 @@ ok
 
 ** Getting started with cowboy
 
+*** Ranch
+
+Ranch is a socket acceptor pool for TCP protocols.
+
+Ranch aims to provide everything you need to accept TCP connections with a small code base and low latency.
+
+Ranch provides a modular design, letting you choose which transport and protocol are going to be used for a particular listener.
+
+Listeners accept and manage connections on one port, and include facilities to limit the number of concurrent connections.
+
+Connections are sorted into pools, each pool having a different configurable limit.
+
+Ranch also allows you to upgrade the acceptor pool without having to close any of the currently opened sockets.
+
+
+*** Cowboy
+
 Small, fast, modular HTTP server.
 
-Let's implement a server with two endpoints:
+Cowboy aims to provide a complete HTTP stack in a small code base. It is optimized for low latency and low memory usage, in part because it uses binary strings.
 
-- `/home`: returns the message "Hello World!"
-- `/other/:word`: returns `:word`
+Cowboy provides routing capabilities, selectively dispatching requests to handlers written in Erlang.
+
+Because it uses Ranch for managing connections, Cowboy can easily be embedded in any other application.
+
+*** Cowboy example
+
+Let's use Cowboy to implement an echo server with the following endpoints
+
+- `/echo/:word`: returns `:word`, will use basic Cowboy handler
+- `/echo_rest/:word`: returns `:word`, will use Cowboy's REST handler
+- `/echo_ws/:word`: returns `:word`, will use Cowboy's websocket handler
 
 First create the project using `rebar3 new app hello`, add cowboy (`{cowboy, "2.7.0"}`) as a dependency, and include it in your application.
 
 Next we create the routes and initialize cowboy in our app:
 
 #+BEGIN_SRC erlang
-Dispatch = cowboy_router:compile([{'_', [{"/home", home_handler, []},
-                                         {"/other/:word", other_handler, []}]}]),
+Dispatch = cowboy_router:compile([{'_', [{"/echo/:word", echo_handler, []},
+                                         {"/echo_rest/:word", echo_rest_handler, []},
+                                         {"/echo_ws/", echo_ws_handler, []}]}]),
 {ok, _} = cowboy:start_clear(http, [{port, 8080}], #{env => #{dispatch => Dispatch}}),
 #+END_SRC
 
 Then we just need to create each of the module handlers we specified and the needed callbacks.
 
-For the most simple handlers (the ones we want) we just need to implement the `init/2` callback.
+For the simple handler we just need to implement the `init/2` callback.
 
 #+BEGIN_SRC erlang
--module(home_handler).
--export([init/2]).
-
-init(Req0, State) ->
-  Req = cowboy_req:reply(200,
-                         #{<<"content-type">> => <<"text/plain">>},
-                         <<"Hello World!">>,
-                         Req0),
-  {ok, Req, State}.
-#+END_SRC
-
-#+BEGIN_SRC erlang
--module(other_handler).
+-module(echo_handler).
 -export([init/2]).
 
 init(Req0, State) ->
@@ -593,6 +608,50 @@ init(Req0, State) ->
                          Word,
                          Req0),
   {ok, Req, State}.
+#+END_SRC
+
+The REST handler is more complicated, but usually its defaults are pretty good. So you just need to implement the callbacks that you need.
+
+#+BEGIN_SRC erlang
+-module(echo_rest_handler).
+-export([init/2,
+         allowed_methods/2,
+         content_types_provided/2,
+         to_plain/2]).
+
+init(Req, State) ->
+  {cowboy_rest, Req, State}.
+
+allowed_methods(Req, State) ->
+  {[<<"GET">>], Req, State}.
+
+content_types_provided(Req, State) ->
+  {[{<<"text/plain">>, to_plain}], Req, State}.
+
+to_plain(Req, State) ->
+  Word = cowboy_req:binding(word, Req),
+  {Word, Req, State}.
+#+END_SRC
+
+The websocket handler looks like this:
+
+#+BEGIN_SRC erlang
+-module(echo_ws_handler).
+
+-export([init/2,
+         websocket_init/1,
+         websocket_handle/2]).
+
+init(Req, Opts) ->
+    {cowboy_websocket, Req, Opts}.
+
+websocket_init(State) ->
+    {ok, State}.
+
+websocket_handle(Frame = {text, _}, State) ->
+    {reply, Frame, State};
+websocket_handle(_Frame, State) ->
+    {ok, State}.
 #+END_SRC
 
 ** Exercise: Shortly
