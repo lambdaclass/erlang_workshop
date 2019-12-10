@@ -685,6 +685,60 @@ websocket_handle(_Frame, State) ->
     {ok, State}.
 #+END_SRC
 
+** Process groups
+
+*** pg2
+
+This module implements process groups. Each message can be sent to one, some, or all group members.
+
+There are no special functions for sending a message to the group. Instead, client functions are to be written using ~get_members/1~ and ~get_local_members/1~ to get the processes and send messages to them.
+
+#+BEGIN_SRC erlang
+1> pg2:create(echos).
+ok
+
+2> pg2:join(echos, self()).
+ok
+
+3> pg2:get_members(echos).
+[<0.78.0>]
+
+4> pg2:leave(echos, self()).
+ok
+
+5> pg2:get_members(echos).
+[]
+#+END_SRC
+
+*** syn
+
+Syn is a global Process Registry and Process Group manager for Erlang and Elixir.
+
+Syn automatically manages addition/removal of nodes from the cluster, and is also able to recover from net splits.
+
+#+BEGIN_SRC erlang
+%% Process Registry
+1> syn:register(hello_proc, self()).
+ok
+
+2> syn:whereis(hello_proc).
+<0.155.0>
+
+%% Process Group
+3> syn:join(echos, self()).
+ok
+
+4> syn:get_members(echos).
+[<0.155.0>]
+
+6> syn:publish(echos, something).
+{ok,1}
+
+7> flush().
+Shell got something
+ok
+#+END_SRC
+
 ** Exercise: Shortly
 
 Based on [Erlings: Shortly](https://github.com/lambdaclass/erlings/tree/master/libraries/shortly)
