@@ -161,6 +161,38 @@ The main behaviors you will used are:
 - supervisor
 - application
 
+** Behavior: gen_server
+
+The gen_server behavior provides what you need for a generic server in a process.
+
+To implement it in your module you need the following callbacks:
+
+- `init/1`: It initializes the server process and returns one of the following:
+  - `{ok, State}`
+  - `{ok, State, Timeout}`
+  - `{ok, State, hibernate}`
+  - `{stop, Reason}`
+  - `ignore`
+- `handle_call/3`: Used to handle synchronous messages sent through the gen_server interface. Its 3 parameters are: `Request`, `From`, `State`.
+  - `{reply, Reply, NewState}`
+  - `{reply, Reply, NewState, Timeout}`
+  - `{reply, Reply, NewState, hibernate}`
+  - `{noreply, NewState}`
+  - `{noreply, NewState, Timeout}`
+  - `{noreply, NewState, hibernate}`
+  - `{stop, Reason, Reply, NewState}`
+  - `{stop, Reason, NewState}`
+- `handle_cast/2`: Used to handle asynchronous messages sent through the gen_server interface. Its 2 parameters are: `Message`, `State`.
+  - `{noreply, NewState}`
+  - `{noreply, NewState, Timeout}`
+  - `{noreply, NewState, hibernate}`
+  - `{stop, Reason, NewState}`
+- `handle_info/2`: Similar to `handle_cast/2`, but for messages sent without using gen_server's interface (`!`, exit signals, etc).
+  - `{noreply, NewState}`
+  - `{noreply, NewState, Timeout}`
+  - `{noreply, NewState, hibernate}`
+  - `{stop, Reason, NewState}`
+
 * Supervisors
 
 ** Linking
