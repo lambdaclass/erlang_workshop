@@ -17,39 +17,32 @@
 
 * Why Erlang?
 - History: build software without downtime
-- Do one thing and only one thing well
-- Practicality over theoretical elegance or coherence
-- Great for networking and servers
+- The mess we are in managing state: A C program with six 32-bit integers can have more states than the number of atoms on the planet
 - Soft real time systems: Througput-latency, expected value-standard deviation tradeoff
-- Redundancy is good, over optimization is bad, you need failover
 
-- The mess we are in: 2
-- Rocket science use controlled explosions as propulsion to send payload in orbit
+** How?
+- Do one thing and only one thing well
+- Practicality over theoretical elegance or coherence (ETS)
 
-- Let it crash is all about fault tolerance. The idea is not to have uncontrolled failures everywhere, it's to instead transform failures, exceptions, and crashes into tools we can use
+- Building blocks: redundancy -> distribution -> networking -> concurrency -> isolation -> no shared mutable state + preemption -> message passing
+- Redundancy is good, over optimization is bad
+- Let it crash: Isolation + automatic restart to a correct state: writing code that only deals with the problem
 
-- Building blocks: redundancy -> distribution -> networking -> concurrency -> isolation -> no shared mutable state -> message passing
-
-** Rapid prototyping
+** Other goodies
+-
 - Binaries:  much easier it is to deal with binaries in erlang than in C
 - Socket handling, specially when things go wrong
-- Dialyzer: sweet practical spot
-
-- Isolation, automatic restart to a correct state and let it crash: writing code that only deals with the problem
-- Messaging:
-- Preemption
-
-- Inspection
+- Dialyzer: sweet practical optional typing
+- Deep inspection
 
 ** Erlang semantics
 
 The unit is the process. Process are isolated, they can be running on different nodes. Process communicate using message passing. Message passing is asynchronous and the message is copied. Each process has its own mailbox where it receives messages.
 
-Processes are isolated, but messaging between processes creates a
+Processes are isolated, but messaging between processes creates a dependency. Monitor and links are the tool
 
 Instead Erlang gives us two mechanisms to deal with this: monitors and links.
 
-Preemptive
 
 
 * Erlang shell
@@ -98,6 +91,7 @@ User switch command
 - tuple
 - record
 - map
+- references
 
 ** Pattern matching
 
@@ -260,6 +254,22 @@ b@maki
 (b@maki)3> {shell_a, 'a@maki'} ! hello_world.
 hello_world
 #+END_SRC
+
+** Monitoring
+
+#+BEGIN_SRC erlang
+#Ref<0.0.0.77>
+2> flush().
+Shell got {'DOWN',#Ref<0.0.0.77>,process,<0.63.0>,normal}
+ok
+#+END_SRC
+
+#+BEGIN_SRC erlang#Ref<0.0.0.77>
+2> flush().
+Shell got {'DOWN',#Ref<0.0.0.77>,process,<0.63.0>,normal}
+ok
+#+END_SRC
+
 
 ** Process dictionary
 Each process has its own dictionary, which you can access using the following BIFs:
