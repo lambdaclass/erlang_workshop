@@ -249,7 +249,7 @@ ok
 #+END_SRC
 
 #+BEGIN_SRC erlang
-erl -sname b
+$ erl -sname b
 Erlang/OTP 22 [erts-10.5.2] [source] [64-bit] [smp:8:8] [ds:8:8:10] [async-threads:1] [hipe] [dtrace]
 
 Eshell V10.5.2  (abort with ^G)
