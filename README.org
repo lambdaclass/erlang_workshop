@@ -1,5 +1,7 @@
 * Who, What, Why?
 
+- We are going to use a top to bottom approach but first I need to know more from you
+
 - Who are you? What is your background?
 - What are you building?
 - Have you used erlang? When? For how much time? What did you build?
@@ -39,9 +41,8 @@
 
 The unit is the process. Process are isolated, they can be running on different nodes. Process communicate using message passing. Message passing is asynchronous and the message is copied. Each process has its own mailbox where it receives messages.
 
-Processes are isolated, but messaging between processes creates a dependency. Monitor and links are the tool
+Processes are isolated, but messaging between processes creates a dependency. Monitor and links are the tool. Instead Erlang gives us two mechanisms to deal with this: monitors and links.
 
-Instead Erlang gives us two mechanisms to deal with this: monitors and links.
 
 * Erlang shell
 
@@ -130,6 +131,27 @@ greater_thant_2(Num) when num > 2 ->
   true;
 greater_thant_2(_) ->
   false;
+#+END_SRC
+
+** Another example
+#+BEGIN_SRC erlang
+function greet(Gender,Name)
+    if Gender == male then
+        print("Hello, Mr. %s!", Name)
+    else if Gender == female then
+        print("Hello, Mrs. %s!", Name)
+    else
+    print("Hello, %s!", Name)
+end
+#+END_SRC
+
+#+BEGIN_SRC erlang
+greet(male, Name) ->
+    io:format("Hello, Mr. ~s!", [Name]);
+greet(female, Name) ->
+    io:format("Hello, Mrs. ~s!", [Name]);
+greet(_, Name) ->
+    io:format("Hello, ~s!", [Name]).
 #+END_SRC
 
 ** Exercise 1
