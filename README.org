@@ -43,8 +43,6 @@ Processes are isolated, but messaging between processes creates a dependency. Mo
 
 Instead Erlang gives us two mechanisms to deal with this: monitors and links.
 
-
-
 * Erlang shell
 
 To invoke the Erlang shell use the ~erl~ command.
@@ -255,16 +253,38 @@ b@maki
 hello_world
 #+END_SRC
 
-** Monitoring
+** Monitors and links
 
-#+BEGIN_SRC erlang
-#Ref<0.0.0.77>
-2> flush().
-Shell got {'DOWN',#Ref<0.0.0.77>,process,<0.63.0>,normal}
-ok
-#+END_SRC
+A link is a specific kind of relationship that can be created between two processes. When that relationship is set up and one of the processes dies from an unexpected throw, error or exit (see Errors and Exceptions), the other linked process also dies.
 
 #+BEGIN_SRC erlang#Ref<0.0.0.77>
+Erlang/OTP 22 [erts-10.5.2] [source] [64-bit] [smp:8:8] [ds:8:8:10] [async-threads:1] [hipe] [dtrace]
+
+Eshell V10.5.2  (abort with ^G)
+1> self().
+<0.78.0>
+2> spawn(fun() -> throw(problem) end).
+<0.81.0>
+=ERROR REPORT==== 11-Dec-2019::00:45:36.890690 ===
+Error in process <0.81.0> with exit value:
+{{nocatch,problem},[{shell,apply_fun,3,[{file,"shell.erl"},{line,904}]}]}
+
+3> self().
+<0.78.0>
+4> spawn_link(fun() -> throw(problem) end).
+=ERROR REPORT==== 11-Dec-2019::00:45:42.976240 ===
+Error in process <0.84.0> with exit value:
+{{nocatch,problem},[{shell,apply_fun,3,[{file,"shell.erl"},{line,904}]}]}
+
+** exception exit: {nocatch,problem}
+5> self().
+<0.85.0>
+#+END_SRC
+
+Monitors are what you want when a process wants to know what's going on with a second process, but neither of them really are vital to each other. Monitors are unidirectional and they can be stacked.
+#+BEGIN_SRC erlang
+1> erlang:monitor(process, spawn(fun() -> timer:sleep(500) end)).
+#Ref<0.0.0.77>
 2> flush().
 Shell got {'DOWN',#Ref<0.0.0.77>,process,<0.63.0>,normal}
 ok
