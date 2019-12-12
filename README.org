@@ -5,7 +5,6 @@
 - Who are you? What is your background?
 - What are you building?
 - Have you used erlang? When? For how much time? What did you build?
-- Do you know what raft, paxos, CAP theorem and CRDTs are?
 
 * Who am I?
 
@@ -13,7 +12,7 @@
 - LambdaClass: software company specialized in data science and distributed systems
 - BuzzConf, Zruput, Papers We Love Buenos Aires,
 - notamonadtutorial.com
-- I like: C, Erlang, Lisp, Rust, Julia
+
 - twitter: @unbalancedparen
 - github: unbalancedparentheses
 
@@ -35,15 +34,13 @@
 - Binaries:  much easier it is to deal with binaries in erlang than in C
 - Socket handling, specially when things go wrong
 - Dialyzer: sweet practical optional typing
-- Deep inspection
+ - Deep inspection
 
 ** Erlang semantics
 
 The unit is the process. Process are isolated, they can be running on different nodes. Process communicate using message passing. Message passing is asynchronous and the message is copied. Each process has its own mailbox where it receives messages.
 
-Processes are isolated, but messaging between processes creates a dependency. Monitor and links are the tool. Instead Erlang gives us two mechanisms to deal with this: monitors and links.
-
-
+Processes are isolated, but messaging between processes creates a dependency. Monitor and links are the tool that links them. Instead Erlang gives us two mechanisms to deal with this: monitors and links.
 * Erlang shell
 
 To invoke the Erlang shell use the ~erl~ command.
@@ -103,6 +100,9 @@ Variable = foo
 
 [FirstElement | _] = [1,2,3]
 %% FirstElement is bound to the value 1
+
+Foo = 0,
+Foo = 1. % ** exception error: no match of right hand side value 1
 #+END_SRC
 
 ** Modules and functions
@@ -141,7 +141,7 @@ function greet(Gender,Name)
     else if Gender == female then
         print("Hello, Mrs. %s!", Name)
     else
-    print("Hello, %s!", Name)
+        print("Hello, %s!", Name)
 end
 #+END_SRC
 
@@ -160,7 +160,7 @@ Write a function to calculate the factorial of N
 
 Solution:
 #+BEGIN_SRC erlang
-factoria(1) ->
+factorial(1) ->
   1;
 factorial(Num) ->
   Num * factorial(Num - 1).
@@ -185,7 +185,7 @@ spawn(Module, Fun, Args) -> pid()
 #+BEGIN_SRC erlang
 lists:map(fun(_)->
             spawn(fun() ->
-              timer:sleep(10000)
+              timer:sleep(100000)
             end)
           end, lists:seq(1, 100000)).
 #+END_SRC
