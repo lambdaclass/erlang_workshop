@@ -823,11 +823,11 @@ echo(_Config) ->
 
 ** Tracing
 
-Erlang offers a powerfull way of debugging called tracing.
+Erlang offers a powerful way of debugging called tracing.
 
 The Erlang module ~dbg~ offers the functions needed to trace anything, but it's a bit overcomplicated to use.
 
-In general you'll want to use the library [[https://github.com/massemanet/redbug][Redbug]], it's really easy to use and very powerfull.
+In general you'll want to use the library [[https://github.com/massemanet/redbug][Redbug]], it's really easy to use and very powerful.
 
 #+BEGIN_SRC erlang
 1> redbug:start("erlang:demonitor").
